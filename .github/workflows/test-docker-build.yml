@@ -1,0 +1,15 @@
+name: Test Docker Build
+
+on:
+  push:
+    branches:
+      - main
+      - feature/multi-arch-docker
+
+jobs:
+  call-build-docker-images:
+    uses: ./.github/workflows/build-docker-images.yml
+    with:
+      version: '0.0.1a1'
+      channel: 'latest'
+      registry: 'ghcr'
