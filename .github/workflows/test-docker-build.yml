@@ -23,6 +23,6 @@ jobs:
   call-build-docker-images:
     uses: ./.github/workflows/build-docker.yml
     with:
-        version: ${{ github.event.inputs.version }}
-        channel: ${{ github.event.inputs.channel }}
-        registry: ${{ github.event.inputs.registry }}
+        version: ${{ github.event.inputs.version || '0.0.1a1' }}
+        channel: ${{ github.event.inputs.channel || 'latest' }}
+        registry: ${{ github.event.inputs.registry || 'ghcr' }}
