@@ -26,16 +26,14 @@ ARG NODE_CHECKSUM
 
 # Set Node.js architecture and download appropriate version
 RUN case "$(dpkg --print-architecture)" in \
-    'amd64') NODE_ARCH='x64' ;; \
-    'arm64') NODE_ARCH='arm64' ;; \
+    'amd64') ARCH_SUFFIX='-x64' ;; \
+    'arm64') ARCH_SUFFIX='-arm64' ;; \
     *) echo "Unsupported architecture" && exit 1 ;; \
     esac \
-    && echo "${NODE_CHECKSUM}  ./nodejs.tar.gz" > node-file-lock.sha \
-    && curl -s -o nodejs.tar.gz "https://nodejs.org/dist/${NODE_VERSION}/node-${NODE_VERSION}-linux-${NODE_ARCH}.tar.gz" \
-    && sha256sum --check node-file-lock.sha \
-    && mkdir -p /usr/local/lib/nodejs \
-    && tar xf nodejs.tar.gz -C /usr/local/lib/nodejs/ --strip-components 1 \
-    && rm nodejs.tar.gz node-file-lock.sha
+    && curl -s "${DOWNLOAD_URL}${ARCH_SUFFIX}.tar.xz" --output sf-linux.tar.xz \
+    && mkdir -p /usr/local/sf \
+    && tar xJf sf-linux.tar.xz -C /usr/local/sf --strip-components 1 \
+    && rm sf-linux.tar.xz
 
 ENV PATH=/usr/local/lib/nodejs/bin:$PATH
 
