@@ -21,3 +21,13 @@ ENV SF_CONTAINER_MODE true
 ENV SFDX_CONTAINER_MODE true
 ENV DEBIAN_FRONTEND=dialog
 ENV SHELL /bin/bash
+
+# Add QEMU installation step to enable multi-arch support
+RUN apt-get update && apt-get install -y qemu-user-static
+
+# Add --platform flag to docker build command to specify target architectures
+# This is typically done in the build command, not in the Dockerfile itself
+# Example: docker buildx build --platform linux/amd64,linux/arm64 -t myimage:latest .
+
+# Update DOWNLOAD_URL argument to use the latest version by default
+ARG DOWNLOAD_URL=https://developer.salesforce.com/media/salesforce-cli/sf/channels/latest/sf-linux-x64.tar.xz

@@ -1,19 +1,13 @@
-name: build-docker-full
+name: test-docker
 on:
-  workflow_call:
-    inputs:
-      version:
-        type: string
-        description: The release semver version
-        required: true
-      channel:
-        type: string
-        description: The release channel (latest-rc, nightly, dev, etc)
-        required: true
+  push:
+    branches:
+      - feature/multi-arch-docker
 
 jobs:
   buildPush:
     runs-on: ubuntu-latest
+    if: github.event.repository.fork
     steps:
       - name: Check out the repo
         uses: actions/checkout@v4
@@ -24,14 +18,14 @@ jobs:
           node-version: ${{ vars.NODE_VERSION_OVERRIDE || 'lts/*' }}
 
       - name: Log in to Docker Hub
-        uses: docker/login-action@0d4c9c5ea7693da7b068278f7b52bda2a190a446
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
-        uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81
+        uses: docker/metadata-action@v5
         with:
           images: salesforce/cli
 
@@ -51,23 +45,23 @@ jobs:
           STEPS_SETUP_NODE_NODE_VERSION: ${{ steps.setup-node.outputs.node-version }}
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@ca052bb54ab0790a636c9b5f226502c73d547a25
+        uses: docker/build-push-action@v5
         with:
           context: .
           push: true
           labels: ${{ steps.meta.outputs.labels }}
-          file: dockerfiles/Dockerfile_full
+          file: Dockerfile
           build-args: |
             NODE_VERSION=${{ steps.setup-node.outputs.node-version }}
             NODE_CHECKSUM=${{ steps.node-checksum.outputs.sha }}
-            SF_CLI_VERSION=${{ inputs.version }}
-          tags: salesforce/cli:${{ inputs.channel }}-full, salesforce/cli:${{ inputs.version }}-full
+            SF_CLI_VERSION=${{ inputs.version || 'latest' }}
+          tags: salesforce/cli:${{ inputs.channel }}-full, salesforce/cli:${{ inputs.version || 'latest' }}-full
 
   verify:
     needs: buildPush
     runs-on: ubuntu-latest
     container:
-      image: salesforce/cli:${{ inputs.version }}-full
+      image: salesforce/cli:${{ inputs.version || 'latest' }}-full
     steps:
       - name: verify node, sf, jq
         # without bash this will fail.  Not sure what the default shell is but it doesn't like the [[(())]] bashism
