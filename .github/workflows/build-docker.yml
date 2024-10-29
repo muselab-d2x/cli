@@ -13,7 +13,7 @@ on:
       registry:
         type: string
         description: Container registry to use (docker, ghcr)
-        default: docker
+        default: ghcr
         required: false
     secrets:
       DOCKER_USERNAME:
@@ -41,7 +41,6 @@ jobs:
           node-version: ${{ vars.NODE_VERSION_OVERRIDE || 'lts/*' }}
 
       - name: Collect version info
-        if: matrix.variant == 'slim'
         uses: salesforcecli/github-workflows/.github/actions/versionInfo@main
         id: version-info
         with:
@@ -96,6 +95,14 @@ jobs:
         with:
           images: ${{ steps.registry.outputs.url }}/salesforce/cli
 
+      - name: Process download URL
+        id: download-url
+        run: |
+          # Extract the base URL (removing architecture suffix)
+          BASE_URL="${{ steps.version-info.outputs.url }}"
+          BASE_URL="${BASE_URL%-x64.tar.xz}"
+          echo "base_url=$BASE_URL" >> "$GITHUB_OUTPUT"
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
@@ -109,7 +116,7 @@ jobs:
             NODE_VERSION=${{ steps.setup-node.outputs.node-version }}
             NODE_CHECKSUM=${{ matrix.variant == 'full' && contains(matrix.platform, 'arm64') && steps.node-checksum.outputs.arm64_sha || steps.node-checksum.outputs.amd64_sha }}
             SF_CLI_VERSION=${{ inputs.version }}
-            DOWNLOAD_URL=${{ steps.version-info.outputs.url }}
+            DOWNLOAD_URL=${{ steps.download-url.outputs.base_url }}
           tags: |
             ${{ steps.registry.outputs.url }}/salesforce/cli:${{ inputs.channel }}-${{ matrix.variant }}
             ${{ steps.registry.outputs.url }}/salesforce/cli:${{ inputs.version }}-${{ matrix.variant }}
