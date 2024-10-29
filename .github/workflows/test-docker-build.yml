@@ -3,13 +3,26 @@ name: Test Docker Build
 on:
   push:
     branches:
-      - main
       - feature/multi-arch-docker
+  workflow_dispatch:
+    inputs:
+        version:
+            description: 'Version of the Salesforce CLI to build'
+            required: true
+            default: '0.0.1a1'
+        channel:
+            description: 'Channel to use for the Docker image'
+            required: true
+            default: 'latest'
+        registry:
+            description: 'Container registry to use'
+            required: true
+            default: 'ghcr'
 
 jobs:
   call-build-docker-images:
-    uses: ./.github/workflows/build-docker-images.yml
+    uses: ./.github/workflows/build-docker.yml
     with:
-      version: '0.0.1a1'
-      channel: 'latest'
-      registry: 'ghcr'
+        version: ${{ github.event.inputs.version }}
+        channel: ${{ github.event.inputs.channel }}
+        registry: ${{ github.event.inputs.registry }}

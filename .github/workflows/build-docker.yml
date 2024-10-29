@@ -13,7 +13,7 @@ on:
       registry:
         type: string
         description: Container registry to use (docker, ghcr)
-        default: ghcr
+        default: docker
         required: false
     secrets:
       DOCKER_USERNAME:
